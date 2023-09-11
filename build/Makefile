@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /mnt/d/compilers
+CMAKE_SOURCE_DIR = /mnt/d/compilers/llvm14_tuts
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /mnt/d/compilers/build
+CMAKE_BINARY_DIR = /mnt/d/compilers/llvm14_tuts/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/compilers/build/CMakeFiles /mnt/d/compilers/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/compilers/llvm14_tuts/build/CMakeFiles /mnt/d/compilers/llvm14_tuts/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/compilers/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/compilers/llvm14_tuts/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -115,6 +115,45 @@ preinstall/fast:
 depend:
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
+
+#=============================================================================
+# Target rules for targets named intrinsics_gen
+
+# Build rule for target.
+intrinsics_gen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 intrinsics_gen
+.PHONY : intrinsics_gen
+
+# fast build rule for target.
+intrinsics_gen/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/intrinsics_gen.dir/build.make CMakeFiles/intrinsics_gen.dir/build
+.PHONY : intrinsics_gen/fast
+
+#=============================================================================
+# Target rules for targets named omp_gen
+
+# Build rule for target.
+omp_gen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 omp_gen
+.PHONY : omp_gen
+
+# fast build rule for target.
+omp_gen/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/omp_gen.dir/build.make CMakeFiles/omp_gen.dir/build
+.PHONY : omp_gen/fast
+
+#=============================================================================
+# Target rules for targets named acc_gen
+
+# Build rule for target.
+acc_gen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 acc_gen
+.PHONY : acc_gen
+
+# fast build rule for target.
+acc_gen/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/acc_gen.dir/build.make CMakeFiles/acc_gen.dir/build
+.PHONY : acc_gen/fast
 
 #=============================================================================
 # Target rules for targets named toy
@@ -161,6 +200,9 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... acc_gen"
+	@echo "... intrinsics_gen"
+	@echo "... omp_gen"
 	@echo "... toy"
 	@echo "... toy.o"
 	@echo "... toy.i"

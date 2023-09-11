@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/mnt/d/compilers/toy.cpp" "CMakeFiles/toy.dir/toy.cpp.o" "gcc" "CMakeFiles/toy.dir/toy.cpp.o.d"
+  "/mnt/d/compilers/llvm14_tuts/toy.cpp" "CMakeFiles/toy.dir/toy.cpp.o" "gcc" "CMakeFiles/toy.dir/toy.cpp.o.d"
   )
 
 # Targets to which this target links.

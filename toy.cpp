@@ -1,3 +1,15 @@
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Verifier.h"
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -7,8 +19,7 @@
 #include <utility>
 #include <vector>
 
-#include "llvm/IR/Value.h"
-
+using namespace llvm;
 
 //===----------------------------------------------------------------------===//
 // Lexer
@@ -91,7 +102,7 @@ namespace {
 /// ExprAST - Base class for all expression nodes.
 class ExprAST {
 public:
-  virtual ~ExprAST() {}
+  virtual ~ExprAST() = default;
   virtual Value *codegen() = 0;
 };
 
@@ -101,7 +112,7 @@ class NumberExprAST : public ExprAST {
 
 public:
   NumberExprAST(double Val) : Val(Val) {}
-  virtual Value *codegen();
+  Value *codegen() override;
 };
 
 /// VariableExprAST - Expression class for referencing a variable, like "a".
@@ -110,6 +121,7 @@ class VariableExprAST : public ExprAST {
 
 public:
   VariableExprAST(const std::string &Name) : Name(Name) {}
+  Value *codegen() override;
 };
 
 /// BinaryExprAST - Expression class for a binary operator.
@@ -121,6 +133,7 @@ public:
   BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
                 std::unique_ptr<ExprAST> RHS)
       : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+  Value *codegen() override;
 };
 
 /// CallExprAST - Expression class for function calls.
@@ -132,6 +145,7 @@ public:
   CallExprAST(const std::string &Callee,
               std::vector<std::unique_ptr<ExprAST>> Args)
       : Callee(Callee), Args(std::move(Args)) {}
+      Value *codegen() override;
 };
 
 /// PrototypeAST - This class represents the "prototype" for a function,
@@ -144,7 +158,8 @@ class PrototypeAST {
 public:
   PrototypeAST(const std::string &Name, std::vector<std::string> Args)
       : Name(Name), Args(std::move(Args)) {}
-
+  
+  Function *codegen();
   const std::string &getName() const { return Name; }
 };
 
@@ -157,6 +172,7 @@ public:
   FunctionAST(std::unique_ptr<PrototypeAST> Proto,
               std::unique_ptr<ExprAST> Body)
       : Proto(std::move(Proto)), Body(std::move(Body)) {}
+  Function *codegen();
 };
 
 } // end anonymous namespace
@@ -172,7 +188,7 @@ static int CurTok;
 static int getNextToken() { return CurTok = gettok(); }
 
 /// BinopPrecedence - This holds the precedence for each binary operator that is
-/// defined.
+/// defined. So * before + usually
 static std::map<char, int> BinopPrecedence;
 
 /// GetTokPrecedence - Get the precedence of the pending binary operator token.
@@ -184,7 +200,7 @@ static int GetTokPrecedence() {
   int TokPrec = BinopPrecedence[CurTok];
   if (TokPrec <= 0)
     return -1;
-  return TokPrec;
+  return TokPrec; // if it is a binop, return its precedence, 
 }
 
 /// LogError* - These are little helper functions for error handling.
@@ -194,11 +210,15 @@ std::unique_ptr<ExprAST> LogError(const char *Str) {
 }
 std::unique_ptr<PrototypeAST> LogErrorP(const char *Str) {
   LogError(Str);
+
   return nullptr;
 }
+//main entry point for parsing expressions.  It calls other parsint fuctions to construct the AST for expressions.
 
 static std::unique_ptr<ExprAST> ParseExpression();
 
+
+//////////////////////////////various parsing fuctions/////////////////////////
 /// numberexpr ::= number
 static std::unique_ptr<ExprAST> ParseNumberExpr() {
   auto Result = std::make_unique<NumberExprAST>(NumVal);
@@ -308,10 +328,10 @@ static std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
         std::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
   }
 }
-
+////////////////////////////////////various parsing fuctions end/////////////////////////
 /// expression
 ///   ::= primary binoprhs
-///
+/// main entry point for parsing expressions.  It calls other parsing functions to construct the AST for expressions.
 static std::unique_ptr<ExprAST> ParseExpression() {
   auto LHS = ParsePrimary();
   if (!LHS)
@@ -322,6 +342,7 @@ static std::unique_ptr<ExprAST> ParseExpression() {
 
 /// prototype
 ///   ::= id '(' id* ')'
+//parses function prototypes including function names and arguments lists
 static std::unique_ptr<PrototypeAST> ParsePrototype() {
   if (CurTok != tok_identifier)
     return LogErrorP("Expected function name in prototype");
@@ -345,6 +366,7 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
 }
 
 /// definition ::= 'def' prototype expression
+//perses function definitions including prototypes and function bodies
 static std::unique_ptr<FunctionAST> ParseDefinition() {
   getNextToken(); // eat def.
   auto Proto = ParsePrototype();
@@ -357,6 +379,7 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
 }
 
 /// toplevelexpr ::= expression
+//parses top level expressions, which are standalone expressions not associated with any functions.  It creates anoyomous function prototypes and fucntion bodies to to represent the expressions
 static std::unique_ptr<FunctionAST> ParseTopLevelExpr() {
   if (auto E = ParseExpression()) {
     // Make an anonymous proto.
@@ -368,6 +391,7 @@ static std::unique_ptr<FunctionAST> ParseTopLevelExpr() {
 }
 
 /// external ::= 'extern' prototype
+//parses external function declarations, which are just prototypes without a function body
 static std::unique_ptr<PrototypeAST> ParseExtern() {
   getNextToken(); // eat extern.
   return ParsePrototype();
@@ -377,6 +401,7 @@ static std::unique_ptr<PrototypeAST> ParseExtern() {
 // Top-Level parsing
 //===----------------------------------------------------------------------===//
 
+////////////////these three determine what to do when encountering different types of top level code constructs such as definition, external, or top level expression/////////////////////
 static void HandleDefinition() {
   if (ParseDefinition()) {
     fprintf(stderr, "Parsed a function definition.\n");
@@ -404,6 +429,7 @@ static void HandleTopLevelExpression() {
     getNextToken();
   }
 }
+///////////////////////////////////////////end of top level parsing functions/////////////////////////////////////
 
 /// top ::= definition | external | expression | ';'
 static void MainLoop() {
@@ -449,3 +475,29 @@ int main() {
 
   return 0;
 }
+
+/*
+                  +-----------+
+                  |  Main     |
+                  |  Loop     |
+                  +-----+-----+
+                        |
+                        v
+                 +------+------+
+                 | Handlers    |
+                 | (HandleX)   |
+                 +------+------+
+                        |
+                        v
+                 +------+------+
+                 | Parsing     |
+                 | Functions   |
+                 +------+------+
+                        |
+                        v
+                 +------+------+
+                 | AST         |
+                 | Construction|
+                 +------+------+
+
+*/

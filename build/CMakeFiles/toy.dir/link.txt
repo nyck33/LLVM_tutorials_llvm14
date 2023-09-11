@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/toy.dir/toy.cpp.o -o toy 
+/usr/bin/c++ CMakeFiles/toy.dir/toy.cpp.o -o toy  -Wl,-rpath,/usr/lib/llvm-14/lib /usr/lib/llvm-14/lib/libLLVM-14.so.1 

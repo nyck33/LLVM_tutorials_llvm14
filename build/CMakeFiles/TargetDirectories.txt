@@ -1,3 +1,6 @@
-/mnt/d/compilers/build/CMakeFiles/toy.dir
-/mnt/d/compilers/build/CMakeFiles/edit_cache.dir
-/mnt/d/compilers/build/CMakeFiles/rebuild_cache.dir
+/mnt/d/compilers/llvm14_tuts/build/CMakeFiles/intrinsics_gen.dir
+/mnt/d/compilers/llvm14_tuts/build/CMakeFiles/omp_gen.dir
+/mnt/d/compilers/llvm14_tuts/build/CMakeFiles/acc_gen.dir
+/mnt/d/compilers/llvm14_tuts/build/CMakeFiles/toy.dir
+/mnt/d/compilers/llvm14_tuts/build/CMakeFiles/edit_cache.dir
+/mnt/d/compilers/llvm14_tuts/build/CMakeFiles/rebuild_cache.dir
